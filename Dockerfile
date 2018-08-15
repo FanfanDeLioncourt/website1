@@ -1,19 +1,16 @@
-FROM microsoft/dotnet:2.0-sdk AS build
-WORKDIR /app
+FROM node:8.4
 
-# Copy everything else and build
-COPY . ./
-RUN dotnet restore
+COPY package.json .
+COPY package-lock.json .
 
-# Build the specific project and output it into /app/out for KintoHub to process
-WORKDIR /app/{Enter-Project-Folder}
-RUN dotnet publish -c Release -o ../out
+RUN npm install
 
-# Runtime image
-FROM microsoft/dotnet:2.0-runtime
-WORKDIR /app
-COPY --from=build /app/out .
+COPY . .
 
-EXPOSE 80
+RUN npm run build
 
-ENTRYPOINT ["dotnet", "{Enter-Project-Output}.dll"]
+RUN npm -g install serve
+
+EXPOSE 5000
+
+CMD ["serve", "-s", "build"]
